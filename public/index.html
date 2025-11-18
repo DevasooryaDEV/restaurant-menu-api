@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taste of India - Restaurant Menu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="restaurant-name">🍛 Taste of India</h1>
+            <p class="tagline">Authentic Indian Cuisine with a Modern Twist</p>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="loadFullMenu()">View Full Menu</button>
+            <button class="btn btn-success" onclick="loadVegetarianMenu()">Vegetarian Options</button>
+            <button class="btn btn-info" onclick="loadCategories()">View Categories</button>
+        </div>
+
+        <div class="content-area" id="contentArea">
+            <div class="empty-state">
+                <h2>Welcome to Taste of India!</h2>
+                <p>Click on any button above to explore our delicious menu offerings.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const contentArea = document.getElementById('contentArea');
+
+       
+        function showLoading(message = 'Loading...') {
+            contentArea.innerHTML = `<div class="loading">${message}</div>`;
+        }
+
+       
+        function showError(message) {
+            contentArea.innerHTML = `<div class="error">Error: ${message}</div>`;
+        }
+
+    
+        function formatPrice(price) {
+            return `₹${price}`;
+        }
+
+      
+        function displayMenuItems(items) {
+            if (items.length === 0) {
+                contentArea.innerHTML = '<div class="empty-state">No items found</div>';
+                return;
+            }
+
+            const itemsHTML = items.map(item => `
+                <div class="menu-item ${item.isVegetarian ? 'vegetarian' : ''}">
+                    ${item.isVegetarian ? '<span class="vegetarian-badge">🌱 Veg</span>' : ''}
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-category">${item.category}</div>
+                    <div class="item-price">${formatPrice(item.price)}</div>
+                    <div class="item-description">${item.description}</div>
+                </div>
+            `).join('');
+
+            contentArea.innerHTML = `
+                <h2>Menu Items (${items.length} items)</h2>
+                <div class="menu-grid">${itemsHTML}</div>
+            `;
+        }
+
+
+        function displayCategories(categories) {
+            if (categories.length === 0) {
+                contentArea.innerHTML = '<div class="empty-state">No categories found</div>';
+                return;
+            }
+
+            const categoriesHTML = categories.map(cat => `
+                <div class="category-card">
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-count">${cat.itemCount}</div>
+                    <div>items</div>
+                </div>
+            `).join('');
+
+            contentArea.innerHTML = `
+                <h2>Menu Categories</h2>
+                <div class="categories-grid">${categoriesHTML}</div>
+            `;
+        }
+
+   
+        async function loadFullMenu() {
+            showLoading('Loading full menu...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/menu`);
+                if (!response.ok) throw new Error('Failed to fetch menu');
+                const items = await response.json();
+                displayMenuItems(items);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+     
+        async function loadVegetarianMenu() {
+            showLoading('Loading vegetarian options...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/menu/vegetarian`);
+                if (!response.ok) throw new Error('Failed to fetch vegetarian menu');
+                const items = await response.json();
+                displayMenuItems(items);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+       
+        async function loadCategories() {
+            showLoading('Loading categories...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/menu/categories`);
+                if (!response.ok) throw new Error('Failed to fetch categories');
+                const data = await response.json();
+                displayCategories(data.categories);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
